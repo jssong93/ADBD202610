@@ -407,7 +407,7 @@
     .subtitle{position:absolute;right:0;bottom:39px;text-align:right;font-size:16px;line-height:1.8;font-weight:400}
     .roulette-card{width:100%;display:grid;grid-template-columns:1.2fr 1fr;gap:32px;padding:0;border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none}
     .section-tag{font-size:10px;letter-spacing:.18em;color:#969d8e;margin-bottom:34px}
-    .wheel-side{padding:20px 18px 34px;min-width:0}.wheel-wrap{max-width:100%;aspect-ratio:1;height:auto;margin:0 auto}
+    .wheel-side{padding:20px 18px 34px;min-width:0;overflow:hidden}.wheel-wrap{max-width:100%;aspect-ratio:1;height:auto;margin:0 auto}
     .wheel-ring{inset:-8px;background:#30352d;border:1px solid #657052;box-shadow:0 0 0 5px #22271f,inset 0 0 0 8px #30352d}
     .pointer{width:30px;height:38px;top:-16px}.pointer:before{border-radius:4px;background:#ff9450}
     .center-badge{width:30%;height:30%;border:4px solid #c2c0a4;background:#191d17;overflow:hidden;box-shadow:0 4px 30px #0009}
@@ -423,6 +423,7 @@
     .gym-list{grid-column:1/-1;width:100%;margin:0}details{border:1px solid #394132;border-radius:14px;background:#1d221b}summary{color:#d5ddca;padding:20px;font-size:13px}.gym-grid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px;padding:0 20px 20px}.gym-grid li{background:#282f23;color:#c1cbb5;font-size:12px;border-radius:6px}
     .note{grid-column:1/-1;color:#8e9985;width:100%;margin:0;font-size:12px}.center-fallback{background:#242a20}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #ff9954;outline-offset:4px}
     @media(max-width:760px){.page{padding:26px 20px}.hero{margin-bottom:24px;padding-bottom:24px}.subtitle{position:static;text-align:left;font-size:14px;margin-top:18px}.roulette-card{grid-template-columns:1fr;gap:20px}.wheel-side{padding:0 8px 18px}.section-tag{margin-bottom:28px}.actions{padding:23px}.wheel-wrap{--wheel-size:min(78vw,490px)}.gym-list{margin:0}h1{font-size:56px}}
+    #image-dialog{width:min(480px,calc(100% - 24px));max-height:90dvh;overflow:auto;box-sizing:border-box;border:1px solid #5a654c;border-radius:18px;background:#1d221b;color:#f4f0e7;padding:20px}#image-dialog::backdrop{background:#000b}.dialog-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.dialog-head h2{font-size:20px;margin:0}.dialog-head button{background:none;border:0;color:#fff;font-size:30px;cursor:pointer}#image-help,.dialog-note{font-size:13px;color:#b5bfa9;line-height:1.7}#result-preview{display:block;width:100%;height:auto;border-radius:8px;user-select:auto;-webkit-touch-callout:default}.preview-actions{display:grid;gap:10px;margin-top:16px}.preview-actions a{display:block;border-radius:8px;padding:14px;background:#30372a;color:#f4f0e7;text-align:center;font-size:14px;text-decoration:none}.preview-actions #download-image{background:#ff8940;color:#201a14;font-weight:800}#image-error{color:#ffb579;font-size:13px}
   </style>
 </head>
 <body>
@@ -482,9 +483,17 @@
         </details>
       </div>
 
-      <p class="note">방문 전 지도에서 운영시간을 확인해 주세요. 이미지 공유는 휴대폰 공유창에서 카카오톡을 선택하면 됩니다.</p>
+      <p class="note">방문 전 지도에서 운영시간을 확인해 주세요. 카카오톡에서 저장이 막히면 이미지 미리보기의 크롬 열기를 이용해 주세요.</p>
     </section>
   </main>
+  <dialog id="image-dialog" aria-labelledby="image-title">
+    <div class="dialog-head"><h2 id="image-title">오늘의 암장 이미지</h2><button id="close-image" type="button" aria-label="미리보기 닫기">×</button></div>
+    <p id="image-help">JPG 다운로드를 누르거나 이미지를 길게 눌러 저장하세요.</p>
+    <img id="result-preview" alt="오늘 뽑은 클라이밍장 결과 카드" />
+    <p id="image-error" role="status" hidden>이미지를 불러오지 못했어요. results 폴더도 함께 업로드했는지 확인해 주세요.</p>
+    <div class="preview-actions"><a id="download-image" download>JPG 다운로드 ↓</a><a id="open-image" target="_blank" rel="noopener">이미지 원본 열기 ↗</a><a id="open-browser">크롬에서 같은 결과 열기 ↗</a></div>
+    <p class="dialog-note">다운로드가 막히면 크롬에서 열어 저장하세요. 저장한 사진은 카카오톡 대화방에 첨부할 수 있어요.</p>
+  </dialog>
 
   <script>
     "use strict";
@@ -500,18 +509,15 @@
       { name: "더클라임 연남점", area: "서울 마포권" },
       { name: "더클라임 마곡점", area: "서울 강서권" },
       { name: "더클라임 신림점", area: "서울 관악권" },
-      { name: "더클라임 서울대점", area: "서울 관악권" },
       { name: "더클라임 사당점", area: "서울 관악권" },
 
       { name: "클라이밍파크 신논현", area: "서울 강남권" },
       { name: "클라이밍파크 성수", area: "서울 성동권" },
       { name: "클라이밍파크 종로", area: "서울 종로권" },
-      { name: "클라이밍파크 한티", area: "서울 강남권" },
       { name: "클라이밍파크 강남", area: "서울 강남권" },
 
       { name: "서울숲클라이밍 잠실", area: "서울 송파권" },
       { name: "서울숲클라이밍 구로", area: "서울 구로권" },
-      { name: "서울숲클라이밍 뚝섬", area: "서울 성동권" },
       { name: "서울숲클라이밍 영등포", area: "서울 영등포권" },
       { name: "서울숲클라이밍 종로", area: "서울 종로권" },
 
@@ -528,6 +534,7 @@
       { name: "캐치스톤 부천", area: "경기 부천" },
     ];
 
+    GYMS.forEach((gym,index)=>{gym.id='gym-'+String(index+1).padStart(2,'0');});
     const CONFIG = {
       spinRoundsMin: 6,
       spinRoundsMax: 9,
@@ -599,7 +606,8 @@
     }
 
     function resizeCanvas() {
-      const rect = canvas.getBoundingClientRect();
+      const rect = { width: canvas.clientWidth, height: canvas.clientHeight };
+      if (rect.width < 16 || rect.height < 16) return;
       const dpr = Math.max(1, Math.min(2.5, window.devicePixelRatio || 1));
 
       canvas.width = Math.round(rect.width * dpr);
@@ -770,7 +778,7 @@
       }
 
       isSpinning = true;
-      cardVersion++; resultFile=null; shareBtn.disabled=true; saveBtn.disabled=true;
+      cardVersion++; resultFile=null; resultImageUrl=null; shareBtn.disabled=true; saveBtn.disabled=true;
       document.getElementById("result-area").textContent="";
       shareStatus.textContent="다음 도전을 고르는 중…";
       spinBtn.disabled = true;
@@ -806,56 +814,62 @@
     const shareBtn=document.getElementById('share');
     const saveBtn=document.getElementById('save');
     const shareStatus=document.getElementById('share-status');
-    let resultFile=null, cardVersion=0;
-    const mascot=new Image(); mascot.src='./assets/red-panda.png';
-    const mascotReady=new Promise(resolve=>{mascot.onload=resolve;mascot.onerror=resolve;if(mascot.complete)resolve();});
-    function cardText(c,text,y,size,color='#f4f0e7') {
-      c.fillStyle=color;c.textAlign='left';c.font=`800 ${size}px system-ui, sans-serif`;
-      while(c.measureText(text).width>880 && size>22){size-=2;c.font=`800 ${size}px system-ui, sans-serif`;}
-      c.fillText(text,100,y);
+    const imageDialog=document.getElementById('image-dialog');
+    const previewImage=document.getElementById('result-preview');
+    const imageError=document.getElementById('image-error');
+    let resultFile=null, resultImageUrl=null, cardVersion=0;
+    function isKakaoBrowser(){return /KAKAOTALK/i.test(navigator.userAgent);}
+    function resultPageUrl(gym){const url=new URL(location.href);url.searchParams.set('result',gym.id);url.hash='';return url;}
+    function configureBrowserLink(gym){
+      const link=document.getElementById('open-browser');const url=resultPageUrl(gym);
+      link.hidden=!/Android/i.test(navigator.userAgent) || !/^https?:$/.test(url.protocol);
+      link.href=`intent://${url.host}${url.pathname}${url.search}#Intent;scheme=${url.protocol.slice(0,-1)};package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url.href)};end`;
     }
     async function prepareCard(gym) {
       const version=++cardVersion;
-      shareStatus.textContent='결과 이미지를 만드는 중…';
+      resultFile=null;
+      resultImageUrl=new URL(`./results/${gym.id}.jpg`,location.href).href;
+      previewImage.src=resultImageUrl;
+      previewImage.alt=`${gym.name} · ${gym.area} 클라이밍 룰렛 결과 카드`;
+      imageError.hidden=true;
+      const download=document.getElementById('download-image');download.href=resultImageUrl;download.download=`climb-result-${gym.id}.jpg`;
+      document.getElementById('open-image').href=resultImageUrl;
+      configureBrowserLink(gym);
+      shareBtn.disabled=false;saveBtn.disabled=false;
+      shareStatus.textContent=isKakaoBrowser()?'카카오톡에서는 이미지 저장 후 대화방에 첨부하세요. 크롬에서는 파일 공유도 이용할 수 있어요.':'결과 이미지를 준비하는 중…';
+      // A real HTTPS JPEG is used for saving. No temporary blob: download URLs.
       try {
-        await mascotReady;
-        if(document.fonts)await document.fonts.ready;
-        const card=document.createElement('canvas');card.width=1080;card.height=1350;
-        const c=card.getContext('2d');
-        c.fillStyle='#181d16';c.fillRect(0,0,1080,1350);
-        const glow=c.createRadialGradient(800,500,20,600,600,700);glow.addColorStop(0,'#42472b');glow.addColorStop(1,'#181d16');c.fillStyle=glow;c.fillRect(0,0,1080,1350);
-        c.strokeStyle='#69734e';c.lineWidth=2;c.strokeRect(40,40,1000,1270);
-        cardText(c,'RED PANDA CLIMB CLUB',125,25,'#ff9954');
-        cardText(c,'오늘은 여기서 완등.',235,62);
-        if(mascot.naturalWidth){const w=600,h=600;const scale=Math.min(w/mascot.naturalWidth,h/mascot.naturalHeight);c.drawImage(mascot,540-mascot.naturalWidth*scale/2,300,mascot.naturalWidth*scale,mascot.naturalHeight*scale);}
-        else {c.font='210px system-ui';c.fillText('↗',400,670);}
-        c.fillStyle='#ff8940';c.fillRect(100,940,60,6);
-        cardText(c,'TODAY’S DESTINATION',1005,22,'#b9c5a0');
-        cardText(c,gym.name,1090,64);
-        cardText(c,gym.area+' · 함께 오르자!',1145,27,'#b9c5a0');
-        cardText(c,new Date().toLocaleDateString('ko-KR')+'  /  CLIMB. SEND. REPEAT.',1250,20,'#869477');
-        const blob=await new Promise((resolve,reject)=>card.toBlob(b=>b?resolve(b):reject(new Error('PNG 생성 실패')),'image/png'));
+        const response=await fetch(resultImageUrl);
+        if(!response.ok)throw new Error('Image missing');
+        const bytes=await response.arrayBuffer();const signature=new Uint8Array(bytes);
+        if(signature[0]!==0xff || signature[1]!==0xd8 || signature[2]!==0xff)throw new Error('Not a JPEG');
         if(version!==cardVersion)return;
-        resultFile=new File([blob],'오늘의-암장-'+gym.name+'.png',{type:'image/png'});
-        shareBtn.disabled=false;saveBtn.disabled=false;
-        shareStatus.textContent=canShareImage()?'공유창에서 카카오톡을 선택해 주세요.':'이 브라우저에서는 이미지를 저장한 뒤 카카오톡에 첨부해 주세요.';
-      } catch(e) {if(version===cardVersion)shareStatus.textContent='이미지를 만들지 못했어요. 다시 뽑아 주세요.';}
+        resultFile=new File([bytes],`climb-result-${gym.id}.jpg`,{type:'image/jpeg'});
+        if(!isKakaoBrowser())shareStatus.textContent=canShareImage()?'공유창에서 카카오톡을 선택해 주세요.':'이미지를 저장해 카카오톡 대화방에 첨부하세요.';
+      }catch(error){
+        if(version!==cardVersion)return;
+        if(location.protocol==='file:')shareStatus.textContent='이미지 저장을 눌러 결과 카드를 열어 주세요. 파일 공유는 게시된 HTTPS 페이지에서 이용할 수 있어요.';
+        else{imageError.hidden=false;shareStatus.textContent='결과 이미지를 읽지 못했어요. results 폴더를 함께 업로드해 주세요.';}
+      }
     }
-    function canShareImage(){try{return !!(window.isSecureContext && navigator.share && navigator.canShare && resultFile && navigator.canShare({files:[resultFile]}));}catch{return false;}}
-    function saveCard(){
-      if(!resultFile)return;
-      const url=URL.createObjectURL(resultFile);const a=document.createElement('a');a.href=url;a.download=resultFile.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-      shareStatus.textContent='저장한 PNG를 카카오톡 대화방에 첨부해 주세요.';
+    previewImage.addEventListener('error',()=>{imageError.hidden=false;});
+    function canShareImage(){try{return !!(!isKakaoBrowser() && window.isSecureContext && navigator.share && navigator.canShare && resultFile && navigator.canShare({files:[resultFile]}));}catch{return false;}}
+    function showImagePreview(){
+      if(!resultImageUrl)return;
+      if(typeof imageDialog.showModal==='function'){if(!imageDialog.open)imageDialog.showModal();}
+      else imageDialog.setAttribute('open','');
     }
+    document.getElementById('close-image').addEventListener('click',()=>{if(typeof imageDialog.close==='function')imageDialog.close();else imageDialog.removeAttribute('open');});
     shareBtn.addEventListener('click',async()=>{
-      if(!resultFile)return;
-      if(!canShareImage()){saveCard();return;}
+      if(!resultImageUrl || isSpinning)return;
+      if(!canShareImage()){showImagePreview();return;}
+      const file=resultFile, version=cardVersion;
       shareBtn.disabled=true;
-      try {await navigator.share({files:[resultFile]});shareStatus.textContent='공유창을 닫았어요. 이미지는 다시 공유할 수 있어요.';}
-      catch(e){if(e.name==='AbortError')shareStatus.textContent='공유를 취소했어요.';else{shareStatus.textContent='공유창을 열지 못했어요. 이미지 저장 후 카카오톡에 첨부해 주세요.';}}
-      finally{shareBtn.disabled=isSpinning || !resultFile;}
+      try {await navigator.share({files:[file]});if(version===cardVersion)shareStatus.textContent='공유창을 닫았어요. 이미지는 다시 공유할 수 있어요.';}
+      catch(error){if(version===cardVersion){if(error.name==='AbortError')shareStatus.textContent='공유를 취소했어요. 다시 시도할 수 있어요.';else{shareStatus.textContent='이 브라우저에서 파일 공유가 막혔어요. 이미지를 저장하거나 크롬에서 열어 주세요.';showImagePreview();}}}
+      finally{shareBtn.disabled=isSpinning || !resultImageUrl;}
     });
-    saveBtn.addEventListener('click',saveCard);
+    saveBtn.addEventListener('click',showImagePreview);
 
     function init() {
       document.documentElement.style.setProperty("--spin-duration", `${CONFIG.spinDurationMs}ms`);
@@ -863,6 +877,9 @@
       updateCount();
       renderGymList();
       resizeCanvas();
+      const restoredId=new URL(location.href).searchParams.get('result');
+      const restoredGym=GYMS.find(g=>g.id===restoredId);
+      if(restoredGym){currentRotation=normalizeDeg(-GYMS.indexOf(restoredGym)*360/GYMS.length);rotator.style.transition='none';rotator.style.transform=`rotate(${currentRotation}deg)`;requestAnimationFrame(()=>requestAnimationFrame(()=>rotator.style.transition=''));showResult(restoredGym);}
       spinBtn.addEventListener("click", spinWheel);
       window.addEventListener("resize", resizeCanvas);
     }
@@ -871,5 +888,7 @@
   </script>
 </body>
 </html>
+
+
 
 
