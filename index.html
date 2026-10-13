@@ -424,6 +424,7 @@
     .note{grid-column:1/-1;color:#8e9985;width:100%;margin:0;font-size:12px}.center-fallback{background:#242a20}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #ff9954;outline-offset:4px}
     @media(max-width:760px){.page{padding:26px 20px}.hero{margin-bottom:24px;padding-bottom:24px}.subtitle{position:static;text-align:left;font-size:14px;margin-top:18px}.roulette-card{grid-template-columns:1fr;gap:20px}.wheel-side{padding:0 8px 18px}.section-tag{margin-bottom:28px}.actions{padding:23px}.wheel-wrap{--wheel-size:min(78vw,490px)}.gym-list{margin:0}h1{font-size:56px}}
     #image-dialog{width:min(480px,calc(100% - 24px));max-height:90dvh;overflow:auto;box-sizing:border-box;border:1px solid #5a654c;border-radius:18px;background:#1d221b;color:#f4f0e7;padding:20px}#image-dialog::backdrop{background:#000b}.dialog-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.dialog-head h2{font-size:20px;margin:0}.dialog-head button{background:none;border:0;color:#fff;font-size:30px;cursor:pointer}#image-help,.dialog-note{font-size:13px;color:#b5bfa9;line-height:1.7}#result-preview{display:block;width:100%;height:auto;border-radius:8px;user-select:auto;-webkit-touch-callout:default}.preview-actions{display:grid;gap:10px;margin-top:16px}.preview-actions a{display:block;border-radius:8px;padding:14px;background:#30372a;color:#f4f0e7;text-align:center;font-size:14px;text-decoration:none}.preview-actions #download-image{background:#ff8940;color:#201a14;font-weight:800}#image-error{color:#ffb579;font-size:13px}
+    #share-dialog{width:min(430px,calc(100% - 24px));max-height:90dvh;overflow:auto;box-sizing:border-box;border:1px solid #5a654c;border-radius:18px;background:#1d221b;color:#f4f0e7;padding:20px}#share-dialog::backdrop{background:#000b}#share-help{font-size:14px;color:#c3ccb8;line-height:1.8}#retry-share{font-family:inherit;font-size:14px;border:0;border-radius:8px;padding:14px;background:#fee500;color:#211b11;font-weight:800;cursor:pointer}
   </style>
 </head>
 <body>
@@ -466,7 +467,7 @@
           <p class="result-label">RESULT</p>
           <p class="result" id="result">당신의 다음 도전을 기다리는 중</p>
 
-          <p id="result-area" class="result-area"></p><div class="share-actions"><button id="share" type="button" disabled>카카오톡으로 이미지 공유</button><button id="save" type="button" disabled>이미지 저장 ↓</button></div><p id="share-status" role="status" class="share-status">암장을 뽑으면 결과 카드를 공유할 수 있어요.</p><div class="meta-row">
+          <p id="result-area" class="result-area"></p><div class="share-actions"><button id="share" type="button" disabled>카카오톡 · 다른 앱으로 공유</button><button id="save" type="button" disabled>이미지 저장 ↓</button></div><p id="share-status" role="status" class="share-status">암장을 뽑으면 결과 카드를 공유할 수 있어요.</p><div class="meta-row">
             <a class="map-link" id="map-link" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">
               📍 지도에서 보기
             </a>
@@ -483,9 +484,15 @@
         </details>
       </div>
 
-      <p class="note">방문 전 지도에서 운영시간을 확인해 주세요. 카카오톡에서 저장이 막히면 이미지 미리보기의 크롬 열기를 이용해 주세요.</p>
+      <p class="note">방문 전 지도에서 운영시간을 확인해 주세요. 이미지 공유 버튼에서 카카오톡 등 보낼 앱을 선택하세요.</p>
     </section>
   </main>
+  <dialog id="share-dialog" aria-labelledby="share-title">
+    <div class="dialog-head"><h2 id="share-title">이미지를 다른 앱으로 보내기</h2><button id="close-share" type="button" aria-label="공유 안내 닫기">×</button></div>
+    <p id="share-help"></p>
+    <div class="preview-actions"><button id="retry-share" type="button">공유창 다시 열기 ↗</button><a id="share-in-browser">크롬에서 같은 결과 공유하기 ↗</a></div>
+    <p class="dialog-note">크롬으로 이동한 뒤 공유 버튼을 한 번 눌러 주세요. 직접 열기가 막히면 카카오톡 메뉴의 다른 브라우저로 열기를 사용하세요.</p>
+  </dialog>
   <dialog id="image-dialog" aria-labelledby="image-title">
     <div class="dialog-head"><h2 id="image-title">오늘의 암장 이미지</h2><button id="close-image" type="button" aria-label="미리보기 닫기">×</button></div>
     <p id="image-help">JPG 다운로드를 누르거나 이미지를 길게 눌러 저장하세요.</p>
@@ -818,13 +825,22 @@
     const previewImage=document.getElementById('result-preview');
     const imageError=document.getElementById('image-error');
     let resultFile=null, resultImageUrl=null, cardVersion=0;
-    function isKakaoBrowser(){return /KAKAOTALK/i.test(navigator.userAgent);}
     function resultPageUrl(gym){const url=new URL(location.href);url.searchParams.set('result',gym.id);url.hash='';return url;}
     function configureBrowserLink(gym){
       const link=document.getElementById('open-browser');const url=resultPageUrl(gym);
       link.hidden=!/Android/i.test(navigator.userAgent) || !/^https?:$/.test(url.protocol);
-      link.href=`intent://${url.host}${url.pathname}${url.search}#Intent;scheme=${url.protocol.slice(0,-1)};package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url.href)};end`;
+      link.href=chromeIntent(url);
+      const shareLink=document.getElementById('share-in-browser');url.searchParams.set('share','1');shareLink.href=chromeIntent(url);shareLink.hidden=link.hidden;
     }
+    function chromeIntent(url){return `intent://${url.host}${url.pathname}${url.search}#Intent;scheme=${url.protocol.slice(0,-1)};package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url.href)};end`;}
+    const shareDialog=document.getElementById('share-dialog');
+    let shareInFlight=false;
+    function showShareHelp(message){
+      document.getElementById('share-help').textContent=message;
+      if(typeof shareDialog.showModal==='function'){if(!shareDialog.open)shareDialog.showModal();}else shareDialog.setAttribute('open','');
+    }
+    function closeShareHelp(){if(typeof shareDialog.close==='function')shareDialog.close();else shareDialog.removeAttribute('open');}
+    document.getElementById('close-share').addEventListener('click',closeShareHelp);
     async function prepareCard(gym) {
       const version=++cardVersion;
       resultFile=null;
@@ -835,8 +851,8 @@
       const download=document.getElementById('download-image');download.href=resultImageUrl;download.download=`climb-result-${gym.id}.jpg`;
       document.getElementById('open-image').href=resultImageUrl;
       configureBrowserLink(gym);
-      shareBtn.disabled=false;saveBtn.disabled=false;
-      shareStatus.textContent=isKakaoBrowser()?'카카오톡에서는 이미지 저장 후 대화방에 첨부하세요. 크롬에서는 파일 공유도 이용할 수 있어요.':'결과 이미지를 준비하는 중…';
+      shareBtn.disabled=true;saveBtn.disabled=false;
+      shareStatus.textContent='공유할 이미지 파일을 준비하는 중…';
       // A real HTTPS JPEG is used for saving. No temporary blob: download URLs.
       try {
         const response=await fetch(resultImageUrl);
@@ -845,7 +861,9 @@
         if(signature[0]!==0xff || signature[1]!==0xd8 || signature[2]!==0xff)throw new Error('Not a JPEG');
         if(version!==cardVersion)return;
         resultFile=new File([bytes],`climb-result-${gym.id}.jpg`,{type:'image/jpeg'});
-        if(!isKakaoBrowser())shareStatus.textContent=canShareImage()?'공유창에서 카카오톡을 선택해 주세요.':'이미지를 저장해 카카오톡 대화방에 첨부하세요.';
+        shareBtn.disabled=shareInFlight || isSpinning;
+        shareStatus.textContent=canShareImage()?'버튼을 누르면 앱 선택창이 열립니다. 카카오톡 등 보낼 앱을 선택하세요.':'이 브라우저는 파일 공유창을 지원하지 않아요. 공유 버튼에서 크롬으로 연결할 수 있어요.';
+        if(new URL(location.href).searchParams.get('share')==='1'){shareStatus.textContent=canShareImage()?'같은 결과를 준비했어요. 공유 버튼을 눌러 보낼 앱을 선택하세요.':shareStatus.textContent;shareBtn.focus();}
       }catch(error){
         if(version!==cardVersion)return;
         if(location.protocol==='file:')shareStatus.textContent='이미지 저장을 눌러 결과 카드를 열어 주세요. 파일 공유는 게시된 HTTPS 페이지에서 이용할 수 있어요.';
@@ -853,22 +871,33 @@
       }
     }
     previewImage.addEventListener('error',()=>{imageError.hidden=false;});
-    function canShareImage(){try{return !!(!isKakaoBrowser() && window.isSecureContext && navigator.share && navigator.canShare && resultFile && navigator.canShare({files:[resultFile]}));}catch{return false;}}
+    function canShareImage(){try{return !!(window.isSecureContext && navigator.share && navigator.canShare && resultFile && navigator.canShare({files:[resultFile]}));}catch{return false;}}
     function showImagePreview(){
       if(!resultImageUrl)return;
       if(typeof imageDialog.showModal==='function'){if(!imageDialog.open)imageDialog.showModal();}
       else imageDialog.setAttribute('open','');
     }
     document.getElementById('close-image').addEventListener('click',()=>{if(typeof imageDialog.close==='function')imageDialog.close();else imageDialog.removeAttribute('open');});
-    shareBtn.addEventListener('click',async()=>{
-      if(!resultImageUrl || isSpinning)return;
-      if(!canShareImage()){showImagePreview();return;}
-      const file=resultFile, version=cardVersion;
-      shareBtn.disabled=true;
-      try {await navigator.share({files:[file]});if(version===cardVersion)shareStatus.textContent='공유창을 닫았어요. 이미지는 다시 공유할 수 있어요.';}
-      catch(error){if(version===cardVersion){if(error.name==='AbortError')shareStatus.textContent='공유를 취소했어요. 다시 시도할 수 있어요.';else{shareStatus.textContent='이 브라우저에서 파일 공유가 막혔어요. 이미지를 저장하거나 크롬에서 열어 주세요.';showImagePreview();}}}
-      finally{shareBtn.disabled=isSpinning || !resultImageUrl;}
-    });
+    async function shareResult(){
+      if(!resultFile || isSpinning || shareInFlight)return;
+      if(!canShareImage()){
+        showShareHelp('이 브라우저는 이미지 파일을 다른 앱으로 보내는 공유창을 지원하지 않아요. 크롬에서 같은 결과를 열고 공유 버튼을 눌러 주세요.');return;
+      }
+      const file=resultFile,version=cardVersion;
+      shareInFlight=true;shareBtn.disabled=true;
+      try {
+        // Invoke before any await so the real button gesture authorizes the OS share sheet.
+        await navigator.share({files:[file]});
+        if(version===cardVersion)shareStatus.textContent='공유창을 닫았어요. 이미지는 다시 공유할 수 있어요.';
+      }catch(error){
+        if(version===cardVersion){
+          if(error.name==='AbortError')shareStatus.textContent='공유를 취소했어요. 다시 시도할 수 있어요.';
+          else{shareStatus.textContent='이 브라우저에서 앱 공유창을 열지 못했어요.';showShareHelp('공유창이 차단되었어요. 아래 버튼으로 다시 시도하거나 크롬에서 같은 결과를 열어 공유해 주세요.');}
+        }
+      }finally{shareInFlight=false;shareBtn.disabled=isSpinning || !resultFile;}
+    }
+    shareBtn.addEventListener('click',shareResult);
+    document.getElementById('retry-share').addEventListener('click',()=>{closeShareHelp();shareResult();});
     saveBtn.addEventListener('click',showImagePreview);
 
     function init() {
